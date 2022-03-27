@@ -1671,7 +1671,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             printf("Enter Image Path: ");
             fflush(stdout);
             input = fgets(input, 256, stdin);
-            if (!input) break;
+            if (!input || strlen(input)<2) break;
             strtok(input, "\n");
         }
         //image im;
@@ -1687,7 +1687,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             layer lk = net.layers[k];
             if (lk.type == YOLO || lk.type == GAUSSIAN_YOLO || lk.type == REGION) {
                 l = lk;
-                printf(" Detection layer: %d - type = %d \n", k, l.type);
+                //printf(" Detection layer: %d - type = %d \n", k, l.type);
             }
         }
 
@@ -1701,7 +1701,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         double time = get_time_point();
         network_predict(net, X);
         //network_predict_image(&net, im); letterbox = 1;
-        printf("%s: Predicted in %lf milli-seconds.\n", input, ((double)get_time_point() - time) / 1000);
+        //printf("%s: Predicted in %lf milli-seconds.\n", input, ((double)get_time_point() - time) / 1000);
         //printf("%s: Predicted in %f seconds.\n", input, (what_time_is_it_now()-time));
 
         int nboxes = 0;
@@ -1716,14 +1716,17 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             show_image(im, "predictions");
         }
 
-        if (json_file) {
-            if (json_buf) {
-                char *tmp = ", \n";
-                fwrite(tmp, sizeof(char), strlen(tmp), json_file);
-            }
-            ++json_image_id;
-            json_buf = detection_to_json(dets, nboxes, l.classes, names, json_image_id, input);
+        if (json_buf) {
+            char* tmp = ", \n";
+            fwrite(tmp, sizeof(char), strlen(tmp), json_file);
+        }
+        ++json_image_id;
+        json_buf = detection_to_json(dets, nboxes, l.classes, names, json_image_id, input);
+        printf("%s\n", json_buf);
 
+        if (json_file) {
+          
+           
             fwrite(json_buf, sizeof(char), strlen(json_buf), json_file);
             free(json_buf);
         }
